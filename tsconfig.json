@@ -1,3 +1,4 @@
+// tsconfig.json
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
@@ -6,7 +7,8 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "types": ["react-native-svg"] // SVG 타입 지원 추가
   },
   "include": [
     "**/*.ts",
