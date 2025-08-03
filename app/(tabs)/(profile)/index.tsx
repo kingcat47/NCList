@@ -1,19 +1,25 @@
 import Button from "@/components/mycomponents/Button";
+import CategorizeBox from "@/components/mycomponents/CategorizeBox";
 import { authAPI } from "@/src/api/auth";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import BedIcon from "../../../assets/svg/Categorize/bed.svg";
+import CoffeIcon from "../../../assets/svg/Categorize/coffe.svg";
+import FoodIcon from "../../../assets/svg/Categorize/food.svg";
+import HealthIcon from "../../../assets/svg/Categorize/health.svg";
+import HeartIcon from "../../../assets/svg/Categorize/heart.svg";
+import MoreIcon from "../../../assets/svg/Categorize/more.svg";
 
 interface User {
   id: string;
   phoneNumber: string;
-  // 필요한 다른 사용자 정보들
 }
 
 export default function Profile() {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [refreshKey, setRefreshKey] = useState(0); // 강제 새로고침을 위한 키
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const checkLoginStatus = async () => {
         try {
@@ -31,9 +37,8 @@ export default function Profile() {
 
     useEffect(() => {
         checkLoginStatus();
-    }, [refreshKey]); // refreshKey가 변경될 때마다 실행
+    }, [refreshKey]);
 
-    // 화면이 포커스될 때마다 로그인 상태 확인
     useFocusEffect(
         useCallback(() => {
             console.log('프로필 화면 포커스됨');
@@ -67,7 +72,6 @@ export default function Profile() {
         );
     };
 
-    // 강제 새로고침 함수
     const forceRefresh = () => {
         setRefreshKey(prev => prev + 1);
     };
@@ -83,28 +87,51 @@ export default function Profile() {
     return (
         <View style={styles.container}>
             {user ? (
-                // 로그인된 상태
-                <View style={styles.loggedInContainer}>
-                    <View style={styles.userInfoContainer}>
-                        <Text style={styles.welcomeText}>로그인 완료!</Text>
-                        <Text style={styles.userPhoneText}>{user.phoneNumber}</Text>
-                    </View>
-                    
-                    <View style={styles.buttonContainer}>
-                        <Button 
-                            title="로그아웃" 
-                            onPress={handleLogout}
-                            style={styles.logoutButton}
+                <View style={styles.container}>
+                    <ScrollView
+                        style={styles.InfoBox_List}
+                        contentContainerStyle={styles.contentContainer}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <CategorizeBox
+                            title="음식점"
+                            number={24}
+                            color="#FB923C"
+                            icon={FoodIcon}
                         />
-                        <Button 
-                            title="새로고침" 
-                            onPress={forceRefresh}
-                            style={styles.refreshButton}
+                        <CategorizeBox
+                            title="카페"
+                            number={12}
+                            color="#FBBF24"
+                            icon={CoffeIcon}
                         />
-                    </View>
+                        <CategorizeBox
+                            title="헬스장"
+                            number={8}
+                            color="#60A5FA"
+                            icon={HealthIcon}
+                        />
+                        <CategorizeBox
+                            title="의료"
+                            number={5}
+                            color="#4ADE80"
+                            icon={HeartIcon}
+                        />
+                        <CategorizeBox
+                            title="숙박"
+                            number={15}
+                            color="#A78BFA"
+                            icon={BedIcon}
+                        />
+                        <CategorizeBox
+                            title="기타"
+                            number={31}
+                            color="#9CA3AF"
+                            icon={MoreIcon}
+                        />
+                    </ScrollView>
                 </View>
             ) : (
-                // 로그인되지 않은 상태
                 <View style={styles.loggedOutContainer}>
                     <Text style={styles.loginPromptText}>로그인이 필요합니다</Text>
                     <Button 
@@ -124,7 +151,7 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "white",
+        backgroundColor: "#fff",
         paddingHorizontal: 20,
     },
     loadingText: {
@@ -169,4 +196,13 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         textAlign: "center",
     },
+    InfoBox_List: {
+        flex: 1,
+        marginTop: 20,
+        width: "100%",
+        paddingHorizontal: 20,
+    },
+    contentContainer: {
+        gap: 16,
+    }
 });

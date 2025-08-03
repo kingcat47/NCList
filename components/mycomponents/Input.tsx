@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-// @ts-ignore
 import LinkIcon from "../../assets/svg/link.svg";
 
 export default function Input() {
@@ -32,7 +31,7 @@ const styles = StyleSheet.create({
         color: "#1C1B1F",
         fontWeight: "bold",
         marginBottom: 12,
-        marginLeft: 8, // 오른쪽 여백 추가
+        marginLeft: 8,
     },
     inputWrapper: {
         flexDirection: "row",

@@ -1,8 +1,7 @@
-import { Text, View, StyleSheet } from "react-native";
-// @ts-ignore
-import MapIcon from "../../assets/svg/map.svg";
-// @ts-ignore
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 import ClockIcon from "../../assets/svg/clock.svg";
+import MapIcon from "../../assets/svg/map.svg";
 
 export default function InfoBox() {
     return (
@@ -44,7 +43,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
-        gap: 8, // 아이콘과 텍스트 사이의 간격
+        gap: 8,
     },
     line1: {
         flexDirection: 'row',
@@ -64,10 +63,10 @@ const styles = StyleSheet.create({
         fontFamily: 'Pretendard',
         fontSize: 24,
         fontWeight: '600',
-        lineHeight: 32, // fontSize보다 크게!
+        lineHeight: 32,
         color: '#1C1B1F',
         width: 83,
-        flexShrink: 0, // 오타 수정
+        flexShrink: 0,
 
     },
     text_map: {
@@ -98,3 +97,4 @@ const styles = StyleSheet.create({
         lineHeight: 23.66,
     },
 });
+
