@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+// @ts-ignore
 import LinkIcon from "../../assets/svg/link.svg";
 
 export default function Input() {
