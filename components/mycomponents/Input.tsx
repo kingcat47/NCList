@@ -1,8 +1,13 @@
 import React from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
+// @ts-ignore
 import LinkIcon from "../../assets/svg/link.svg";
 
-export default function Input() {
+interface InputProps extends TextInputProps {
+    // 혹시 모르니까
+}
+
+export default function Input(props: InputProps) {
     return (
         <View style={styles.container}>
             <Text style={styles.text_main}>가게 링크를 넣어주세요</Text>
@@ -13,6 +18,7 @@ export default function Input() {
                     style={styles.input}
                     placeholder="https://map.naver.com/example..."
                     placeholderTextColor="#aaa"
+                    {...props}
                 />
             </View>
         </View>
@@ -26,7 +32,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     text_main: {
-        fontFamily: 'Pretendard',
+        fontFamily: "Pretendard",
         fontSize: 24,
         color: "#1C1B1F",
         fontWeight: "bold",

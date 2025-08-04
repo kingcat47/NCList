@@ -4,13 +4,14 @@ import { StyleSheet, Text, View } from 'react-native';
 type Props = {
     title: string;
     number: number;
-    color: string;
+    color: string; // 아이콘 배경색
     icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 };
 
 export default function CategorizeBox({ title, number, color, icon: Icon }: Props) {
     return (
         <View style={styles.container}>
+
             <View style={styles.left}>
                 <View style={[styles.icon_layout, { backgroundColor: color }]}>
                     <Icon width={20} height={20} />
@@ -20,6 +21,7 @@ export default function CategorizeBox({ title, number, color, icon: Icon }: Prop
                     <Text style={styles.subtitle}>저장된 장소</Text>
                 </View>
             </View>
+
 
             <View style={styles.right}>
                 <Text style={styles.number}>{number}</Text>

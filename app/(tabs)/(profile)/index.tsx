@@ -4,12 +4,19 @@ import { authAPI } from "@/src/api/auth";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+// @ts-ignore
 import BedIcon from "../../../assets/svg/Categorize/bed.svg";
-import CoffeIcon from "../../../assets/svg/Categorize/coffe.svg";
-import FoodIcon from "../../../assets/svg/Categorize/food.svg";
-import HealthIcon from "../../../assets/svg/Categorize/health.svg";
+// @ts-ignore
+import CoffeIcon from "../../../assets/svg/Categorize/coffe.svg"; // 음식 아이콘
+// @ts-ignore
+import FoodIcon from "../../../assets/svg/Categorize/food.svg"; // 음식 아이콘
+// @ts-ignore
+import HealthIcon from "../../../assets/svg/Categorize/health.svg"; // 음식 아이콘
+// @ts-ignore
 import HeartIcon from "../../../assets/svg/Categorize/heart.svg";
+// @ts-ignore
 import MoreIcon from "../../../assets/svg/Categorize/more.svg";
+import DeletePopup from "@/components/mycomponents/DeletePopup";
 
 interface User {
   id: string;
@@ -19,7 +26,7 @@ interface User {
 export default function Profile() {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [refreshKey, setRefreshKey] = useState(0);
+    const [refreshKey, setRefreshKey] = useState(0); // 강제 새로고침을 위한 키
 
     const checkLoginStatus = async () => {
         try {
@@ -129,31 +136,39 @@ export default function Profile() {
                             color="#9CA3AF"
                             icon={MoreIcon}
                         />
+                        <View style={styles.buttonContainer}>
+                            <Button
+                                title="로그아웃"
+                                onPress={handleLogout}
+                                style={styles.logoutButton}
+                            />
+                            <Button
+                                title="새로고침"
+                                onPress={forceRefresh}
+                                style={styles.refreshButton}
+                            />
+
+                        </View>
                     </ScrollView>
+
                 </View>
             ) : (
                 <View style={styles.loggedOutContainer}>
                     <Text style={styles.loginPromptText}>로그인이 필요합니다</Text>
-                    <Button 
-                        title="로그인하러가기" 
+                    <Button
+                        title="로그인하러가기"
                         onPress={() => {
                             router.push("/login");
-                        }} 
+                        }}
                     />
                 </View>
             )}
+
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#fff",
-        paddingHorizontal: 20,
-    },
     loadingText: {
         fontSize: 16,
         color: "#666",
@@ -195,6 +210,12 @@ const styles = StyleSheet.create({
         color: "#666",
         marginBottom: 30,
         textAlign: "center",
+    },
+    container: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#fff",
     },
     InfoBox_List: {
         flex: 1,

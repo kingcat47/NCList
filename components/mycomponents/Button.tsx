@@ -31,9 +31,11 @@ export default function Button({
                                          style,
                                          textStyle,
                                      }: Props) {
+    // @ts-ignore
     return (
         <Pressable
             onPress={onPress}
+            // @ts-ignore
             style={({ pressed }) => [
                 styles.button,
                 {
