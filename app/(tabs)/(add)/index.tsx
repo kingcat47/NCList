@@ -4,16 +4,17 @@ import Button from "@/components/mycomponents/Button";
 import React, { useState } from "react";
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DeletePopup from "@/components/mycomponents/DeletePopup";
 import { getApiBaseUrl } from "../../../utils/api";
 
 const API_BASE_URL = getApiBaseUrl();
 
 export default function Add() {
     const [link, setLink] = useState('');
+
     const handleClear = () => {
         setLink('');
-    }
+    };
+
     const handleExtractStoreInfo = async () => {
         try {
             const token = await AsyncStorage.getItem('accessToken');
@@ -23,24 +24,26 @@ export default function Add() {
             }
 
             const response = await axios.post(
-                `${API_BASE_URL}/gpt/extract-store-info`,
+                `${API_BASE_URL}/api/gpt/extract-store-info`,
                 { text: link },
                 {
                     headers: {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${token}`,
                     },
-                    timeout: 10000,
+                    timeout: 25000,
                 }
             );
 
             const result = response.data;
 
+            console.log("서버 응답:", result);
+
             if (result.success) {
                 const info = result.data;
                 Alert.alert(
                     "가게 정보 추출 성공",
-                    `이름: ${info.name}\n위치: ${info.location}\n상태: ${info.status}\n영업시간: ${info.hours}\n카테고리: ${info.category}`
+                    `이름: ${info.name ?? '없음'}\n위치: ${info.location ?? '없음'}\n상태: ${info.status ?? '미확인'}\n영업시간: ${info.hours ?? '없음'}\n카테고리: ${info.category ?? '없음'}`
                 );
             } else {
                 Alert.alert("오류", "가게 정보를 가져오지 못했습니다.");
@@ -72,7 +75,7 @@ export default function Add() {
                     backgroundColor="#8A8A8A"
                     pressedColor="#6E6E6E"
                     textColor="#FFFFFF"
-                    onPress={() => handleClear()}
+                    onPress={handleClear}
                 />
             </View>
         </View>

@@ -5,11 +5,12 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { getApiBaseUrl } from "../../../utils/api";
+
 interface Store {
     id: string;
     name: string;
     location: string;
-    status: "영업중" | "곧마감" | "마감";
+    status?: "영업중" | "곧마감" | "마감"; // 👈 옵셔널 처리
     hours: string;
     category: string;
     originalUrl?: string;
@@ -18,7 +19,6 @@ interface Store {
 export default function Home() {
     const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
-
 
     const API_BASE_URL = getApiBaseUrl();
 
@@ -33,7 +33,7 @@ export default function Home() {
             });
             setStores(response.data.data);
         } catch (error) {
-            console.error("가게 정보를 불러오는 데 실패했습니다.", error);
+            // console.error("가게 정보를 불러오는 데 실패했습니다.", error);
         } finally {
             setLoading(false);
         }
@@ -62,7 +62,7 @@ export default function Home() {
                             key={store.id}
                             name={store.name}
                             location={store.location}
-                            status={store.status}
+                            status={store.status ?? "영업중"} // ✅ 항상 영업중 fallback
                             hours={store.hours}
                             originalUrl={store.originalUrl}
                         />
@@ -84,7 +84,6 @@ const styles = StyleSheet.create({
     InfoBox_List: {
         flex: 1,
         marginTop: 25,
-
         width: "100%",
     },
     contentContainer: {

@@ -7,12 +7,12 @@ import ClockIcon from "../../assets/svg/clock.svg";
 import DeletePopup from "./DeletePopup";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {getApiBaseUrl} from "@/utils/api";
+import { getApiBaseUrl } from "@/utils/api";
 
 interface InfoBoxProps {
     name: string;
     location: string;
-    status: string;
+    status?: string; // ✅ 옵셔널로 변경
     hours: string;
     originalUrl?: string;
     currentTab?: "home" | "like";
@@ -20,10 +20,11 @@ interface InfoBoxProps {
     onDeleted?: (deletedId: string) => void;
     onLongPress?: () => void;
 }
+
 export default function InfoBox({
                                     name,
                                     location,
-                                    status,
+                                    status = "영업중", // ✅ 기본값 지정
                                     hours,
                                     originalUrl,
                                     currentTab = "home",
@@ -52,7 +53,9 @@ export default function InfoBox({
             setShowPopup(true);
         }
     };
+
     const API_BASE_URL = getApiBaseUrl();
+
     const handleDelete = async () => {
         try {
             const token = await AsyncStorage.getItem("accessToken");

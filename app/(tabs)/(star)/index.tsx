@@ -11,13 +11,13 @@ import DeletePopup from "@/components/mycomponents/DeletePopup";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import {getApiBaseUrl} from "@/utils/api";
+import { getApiBaseUrl } from "@/utils/api";
 
 interface Store {
     id: string;
     name: string;
     location: string;
-    status: "영업중" | "곧마감" | "마감";
+    status?: "영업중" | "곧마감" | "마감"; // ✅ 옵셔널로 변경
     hours: string;
     category: string;
     originalUrl?: string;
@@ -41,7 +41,7 @@ export default function Like() {
             });
             setStores(response.data.data);
         } catch (error) {
-            console.error("좋아요 가게를 불러오는 데 실패했습니다.", error);
+            // console.error("좋아요 가게를 불러오는 데 실패했습니다.", error);
         } finally {
             setLoading(false);
         }
@@ -90,7 +90,7 @@ export default function Like() {
                             key={store.id}
                             name={store.name}
                             location={store.location}
-                            status={store.status}
+                            status={store.status ?? "영업중"} // ✅ fallback 처리
                             hours={store.hours}
                             originalUrl={store.originalUrl}
                             storeId={store.id}
