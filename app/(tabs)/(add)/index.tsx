@@ -5,11 +5,13 @@ import React, { useState } from "react";
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from "../../../utils/api";
+import { useLoading } from "../../../LoadingContext"; // 경로 맞추기
 
 const API_BASE_URL = getApiBaseUrl();
 
 export default function Add() {
     const [link, setLink] = useState('');
+    const { setLoading } = useLoading();
 
     const handleClear = () => {
         setLink('');
@@ -37,7 +39,7 @@ export default function Add() {
             const match = finalUrl.match(/https:\/\/map\.naver\.com\/p\/entry\/place\/\d+/);
             const resolved = match ? match[0] : finalUrl;
 
-            console.log("리다이렉션 거친 최종 URL:", resolved);  // 여기서 콘솔 출력
+            console.log("리다이렉션 거친 최종 URL:", resolved);
 
             return resolved;
         } catch (err) {
@@ -48,9 +50,11 @@ export default function Add() {
 
     const handleExtractStoreInfo = async () => {
         try {
+            setLoading(true);
             const token = await AsyncStorage.getItem('accessToken');
             if (!token) {
                 Alert.alert('인증 필요', '로그인 후 사용해주세요.');
+                setLoading(false);
                 return;
             }
 
@@ -58,6 +62,7 @@ export default function Add() {
 
             if (!shortUrl) {
                 Alert.alert("링크 오류", "유효한 네이버 지도 단축 링크가 필요합니다.");
+                setLoading(false);
                 return;
             }
 
@@ -65,6 +70,7 @@ export default function Add() {
 
             if (!resolvedUrl) {
                 Alert.alert("리다이렉션 실패", "단축 URL을 실제 URL로 변환하지 못했습니다.");
+                setLoading(false);
                 return;
             }
 
@@ -72,7 +78,7 @@ export default function Add() {
                 `${API_BASE_URL}/api/firecrawl/extract-store-info`,
                 {
                     text: link,
-                    resolvedUrl: resolvedUrl,
+                    resolvedUrl
                 },
                 {
                     headers: {
@@ -99,6 +105,8 @@ export default function Add() {
         } catch (error: any) {
             console.error("에러 발생:", error);
             Alert.alert("에러", "서버와 통신 중 문제가 발생했습니다.");
+        } finally {
+            setLoading(false);
         }
     };
 

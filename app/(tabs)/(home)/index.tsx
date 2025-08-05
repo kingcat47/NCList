@@ -62,7 +62,7 @@ export default function Home() {
                             key={store.id}
                             name={store.name}
                             location={store.location}
-                            status={store.status ?? "영업중"} // ✅ 항상 영업중 fallback
+                            status={store.status ?? "영업중"}
                             hours={store.hours}
                             originalUrl={store.originalUrl}
                         />
