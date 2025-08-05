@@ -90,7 +90,7 @@ export default function Like() {
                             key={store.id}
                             name={store.name}
                             location={store.location}
-                            status={store.status ?? "영업중"}
+                            status={store.status ?? undefined}
                             hours={store.hours}
                             originalUrl={store.originalUrl}
                             storeId={store.id}

@@ -1,4 +1,4 @@
-// LoadingContext.tsx
+// src/context/LoadingContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface LoadingContextType {
@@ -13,6 +13,9 @@ const LoadingContext = createContext<LoadingContextType>({
 
 export const LoadingProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(false);
+
+    console.log("[LoadingContext] loading state:", loading);
+
     return (
         <LoadingContext.Provider value={{ loading, setLoading }}>
             {children}

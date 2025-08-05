@@ -2,28 +2,43 @@ import { authAPI } from "@/src/api/auth";
 import { Stack } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet } from "react-native";
-import { useLoading, LoadingProvider } from "../LoadingContext"; // 경로에 맞게 조정
+import { useLoading, LoadingProvider } from "../LoadingContext";
 
 function RootLayoutInner() {
     const { loading } = useLoading();
     const animatedValue = useRef(new Animated.Value(0)).current;
+    const animationRef = useRef<Animated.CompositeAnimation | null>(null);
 
     useEffect(() => {
+        console.log("[RootLayoutInner] Component mounted");
         checkTokenOnAppStart();
     }, []);
 
     useEffect(() => {
+        console.log("[RootLayoutInner] loading changed:", loading);
+
         if (loading) {
-            Animated.loop(
+            if (animationRef.current) {
+                console.log("[RootLayoutInner] animation already running");
+                return; // 이미 애니메이션 실행 중이면 실행하지 않음
+            }
+            animationRef.current = Animated.loop(
                 Animated.timing(animatedValue, {
                     toValue: 1,
                     duration: 2000,
                     easing: Easing.linear,
                     useNativeDriver: false,
                 })
-            ).start();
+            );
+            animationRef.current.start(() => {
+                console.log("[RootLayoutInner] animation loop started");
+            });
         } else {
-            animatedValue.stopAnimation();
+            if (animationRef.current) {
+                animationRef.current.stop();
+                animationRef.current = null;
+                console.log("[RootLayoutInner] animation stopped");
+            }
             animatedValue.setValue(0);
         }
     }, [loading]);
@@ -34,19 +49,22 @@ function RootLayoutInner() {
     });
 
     const checkTokenOnAppStart = async () => {
+        console.log("[RootLayoutInner] Checking token on app start...");
         try {
             const isLoggedIn = await authAPI.isLoggedIn();
+            console.log("[RootLayoutInner] isLoggedIn:", isLoggedIn);
+
             if (isLoggedIn) {
                 try {
                     await authAPI.verifyToken();
-                    console.log("토큰이 유효합니다.");
+                    console.log("[RootLayoutInner] Token is valid.");
                 } catch (error) {
-                    console.log("토큰 만료로 자동 로그아웃 처리");
+                    console.log("[RootLayoutInner] Token expired, logging out.");
                     await authAPI.logout();
                 }
             }
         } catch (error) {
-            console.log("앱 시작 시 토큰 확인 중 오류:", error);
+            console.log("[RootLayoutInner] Error checking token:", error);
         }
     };
 

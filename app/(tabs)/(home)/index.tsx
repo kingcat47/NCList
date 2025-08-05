@@ -16,6 +16,46 @@ interface Store {
     originalUrl?: string;
 }
 
+// 영업시간 문자열 파싱 (분 단위로 변환)
+const parseHours = (hours: string): { open: number; close: number } | null => {
+
+    const separator = hours.includes("~") ? "~" : "-";
+    if (!hours.includes(separator)) return null;
+
+    const [openStr, closeStr] = hours.split(separator).map((s) => s.trim());
+
+    const toMinutes = (time: string) => {
+        const [h, m] = time.split(":").map(Number);
+        if (isNaN(h) || isNaN(m)) return -1;
+        return h * 60 + m;
+    };
+
+    const open = toMinutes(openStr);
+    const close = toMinutes(closeStr);
+    if (open < 0 || close < 0) return null;
+    return { open, close };
+};
+
+const getStatus = (hours: string): "영업중" | "곧마감" | "마감" => {
+    const timeRange = parseHours(hours);
+    if (!timeRange) return "마감";
+
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (nowMinutes < timeRange.open || nowMinutes > timeRange.close) {
+        return "마감";
+    }
+
+    const diff = timeRange.close - nowMinutes;
+
+    if (diff <= 60) {
+        return "곧마감";
+    }
+
+    return "영업중";
+};
+
 export default function Home() {
     const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
@@ -57,16 +97,20 @@ export default function Home() {
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    {stores.map((store) => (
-                        <InfoBox
-                            key={store.id}
-                            name={store.name}
-                            location={store.location}
-                            status={store.status ?? "영업중"}
-                            hours={store.hours}
-                            originalUrl={store.originalUrl}
-                        />
-                    ))}
+                    {stores.map((store) => {
+                        // status가 있으면 그 값 사용, 없으면 hours 기준으로 계산
+                        const status = store.status ?? getStatus(store.hours);
+                        return (
+                            <InfoBox
+                                key={store.id}
+                                name={store.name}
+                                location={store.location}
+                                status={status}
+                                hours={store.hours}
+                                originalUrl={store.originalUrl}
+                            />
+                        );
+                    })}
                 </ScrollView>
             )}
         </View>

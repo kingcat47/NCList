@@ -13,7 +13,7 @@ interface InfoBoxProps {
     name: string;
     location: string;
     status?: string;
-    hours: string;
+    hours?: string;
     originalUrl?: string;
     currentTab?: "home" | "like";
     storeId?: string;
@@ -21,20 +21,60 @@ interface InfoBoxProps {
     onLongPress?: () => void;
 }
 
+const parseHours = (hours: string): { open: number; close: number } | null => {
+    const separator = hours.includes("~") ? "~" : hours.includes("-") ? "-" : null;
+    if (!separator) return null;
+    const [openStr, closeStr] = hours.split(separator).map((s) => s.trim());
+    const toMinutes = (time: string) => {
+        const [h, m] = time.split(":").map(Number);
+        if (isNaN(h) || isNaN(m)) return -1;
+        return h * 60 + m;
+    };
+    const open = toMinutes(openStr);
+    const close = toMinutes(closeStr);
+    if (open < 0 || close < 0) return null;
+    return { open, close };
+};
+
+const getStatusFromHours = (
+    hours?: string
+): "영업중" | "곧마감" | "마감" => {
+    if (!hours) return "마감";
+    const timeRange = parseHours(hours);
+    if (!timeRange) return "마감";
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    if (nowMinutes < timeRange.open || nowMinutes > timeRange.close) {
+        return "마감";
+    }
+    const diff = timeRange.close - nowMinutes;
+    if (diff <= 60) {
+        return "곧마감";
+    }
+    return "영업중";
+};
+
 export default function InfoBox({
                                     name,
                                     location,
-                                    status = "영업중",
+                                    status,
                                     hours,
                                     originalUrl,
                                     currentTab = "home",
                                     storeId,
                                     onDeleted,
+                                    onLongPress,
                                 }: InfoBoxProps) {
     const [showPopup, setShowPopup] = useState(false);
+    const displayStatus = status ?? getStatusFromHours(hours);
+    const truncateTitle = (title: string, maxLength = 8) =>
+        title.length > maxLength ? title.slice(0, maxLength) + "..." : title;
+    const truncateLocation = (loc: string, maxLength = 6) =>
+        loc.length > maxLength ? loc.slice(0, maxLength) + ".." : loc;
+    const showStatusInfo = currentTab === "home";
 
     const getStatusColor = () => {
-        switch (status) {
+        switch (displayStatus) {
             case "영업중":
                 return "#03C75A";
             case "곧마감":
@@ -66,37 +106,43 @@ export default function InfoBox({
             });
             setShowPopup(false);
             onDeleted?.(storeId!);
-        } catch (error) {
-            console.error("가게 삭제 실패:", error);
+        } catch {
+            // 삭제 실패 시 로그만 남김
         }
     };
 
     return (
         <>
-            <Pressable onPress={handlePress}>
-                <View style={styles.box}>
+            <Pressable onPress={handlePress} onLongPress={onLongPress}>
+                <View
+                    style={[
+                        styles.box,
+                        currentTab === "like" && styles.boxLike,
+                    ]}
+                >
                     <View style={styles.line1}>
-                        <Text style={styles.text_name}>{name}</Text>
+                        <Text style={styles.text_name}>{truncateTitle(name)}</Text>
                         <View style={styles.box_map}>
                             <MapIcon width={16} height={16} style={{ marginBottom: 2 }} />
-                            <Text style={styles.text_map}>{location}</Text>
+                            <Text style={styles.text_map}>{truncateLocation(location)}</Text>
                         </View>
                     </View>
-                    <View style={styles.box_map}>
-                        <ClockIcon width={18.9} height={18.9} />
-                        <Text style={[styles.text_isopen, { color: getStatusColor() }]}>
-                            {status}
-                        </Text>
-                        <Text style={styles.text_point}>·</Text>
-                        <Text style={styles.text_time}>{hours}</Text>
-                    </View>
+
+                    {showStatusInfo && (
+                        <View style={styles.statusRow}>
+                            <ClockIcon width={18.9} height={18.9} />
+                            <Text style={[styles.text_isopen, { color: getStatusColor() }]}>
+                                {displayStatus}
+                            </Text>
+                            <Text style={styles.text_point}>·</Text>
+                            <Text style={styles.text_time}>{hours}</Text>
+                        </View>
+                    )}
                 </View>
             </Pressable>
+
             {showPopup && (
-                <DeletePopup
-                    onConfirm={handleDelete}
-                    onCancel={() => setShowPopup(false)}
-                />
+                <DeletePopup onConfirm={handleDelete} onCancel={() => setShowPopup(false)} />
             )}
         </>
     );
@@ -119,11 +165,10 @@ const styles = StyleSheet.create({
         marginTop: 5,
         marginLeft: 1,
     },
-    box_map: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 8,
-        gap: 8,
+    boxLike: {
+        paddingVertical: 15,
+        paddingHorizontal: 12,
+        width: 340,
     },
     line1: {
         flexDirection: "row",
@@ -131,6 +176,17 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         width: "100%",
         marginBottom: 16,
+    },
+    box_map: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 8,
+        gap: 8,
+    },
+    statusRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
     },
     text_name: {
         fontSize: 24,

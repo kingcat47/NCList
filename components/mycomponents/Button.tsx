@@ -18,35 +18,47 @@ type Props = {
     textColor?: string;
     style?: ViewStyle;
     textStyle?: TextStyle;
+    disabled?: boolean;
 };
 
 export default function Button({
-                                         title,
-                                         onPress,
-                                         width = 160,
-                                         height = 40,
-                                         backgroundColor = "#146EFF",
-                                         pressedColor = "#0E51BF",
-                                         textColor = "#FFFFFF",
-                                         style,
-                                         textStyle,
-                                     }: Props) {
-    // @ts-ignore
+                                   title,
+                                   onPress,
+                                   width = 160,
+                                   height = 40,
+                                   backgroundColor = "#146EFF",
+                                   pressedColor = "#0E51BF",
+                                   textColor = "#FFFFFF",
+                                   style,
+                                   textStyle,
+                                   disabled = false,
+                               }: Props) {
+
     return (
         <Pressable
-            onPress={onPress}
+            onPress={disabled ? undefined : onPress}
+            disabled={disabled}
             // @ts-ignore
             style={({ pressed }) => [
                 styles.button,
                 {
                     width,
                     height,
-                    backgroundColor: pressed ? pressedColor : backgroundColor,
+                    backgroundColor: disabled ? "#B0B0B0" : pressed ? pressedColor : backgroundColor, // disabled 시 회색톤으로 변경
+                    opacity: disabled ? 0.6 : 1,
                 },
                 style,
             ]}
         >
-            <Text style={[styles.text, { color: textColor }, textStyle]}>{title}</Text>
+            <Text
+                style={[
+                    styles.text,
+                    { color: disabled ? "#888888" : textColor },
+                    textStyle,
+                ]}
+            >
+                {title}
+            </Text>
         </Pressable>
     );
 }
@@ -60,7 +72,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     text: {
-        fontFamily: 'Pretendard',
+        fontFamily: "Pretendard",
         fontSize: 16,
         fontWeight: "bold",
     },
