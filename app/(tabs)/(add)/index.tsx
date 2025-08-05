@@ -15,6 +15,37 @@ export default function Add() {
         setLink('');
     };
 
+    const extractShortUrl = (text: string): string | null => {
+        const match = text.match(/https:\/\/naver\.me\/\S+/);
+        return match ? match[0] : null;
+    };
+
+    const resolveRedirectUrl = async (shortUrl: string): Promise<string | null> => {
+        try {
+            const response = await axios.get(shortUrl, {
+                maxRedirects: 5,
+            });
+
+            const finalUrl = response.request?.responseURL || response.request?.res?.responseUrl;
+
+            if (!finalUrl) {
+                console.warn("최종 URL 추출 실패 (responseURL 없음)");
+                return null;
+            }
+
+            // /place/숫자 부분만 추출
+            const match = finalUrl.match(/https:\/\/map\.naver\.com\/p\/entry\/place\/\d+/);
+            const resolved = match ? match[0] : finalUrl;
+
+            console.log("리다이렉션 거친 최종 URL:", resolved);  // 여기서 콘솔 출력
+
+            return resolved;
+        } catch (err) {
+            console.error("리다이렉션 추출 실패:", err);
+            return null;
+        }
+    };
+
     const handleExtractStoreInfo = async () => {
         try {
             const token = await AsyncStorage.getItem('accessToken');
@@ -23,15 +54,32 @@ export default function Add() {
                 return;
             }
 
+            const shortUrl = extractShortUrl(link);
+
+            if (!shortUrl) {
+                Alert.alert("링크 오류", "유효한 네이버 지도 단축 링크가 필요합니다.");
+                return;
+            }
+
+            const resolvedUrl = await resolveRedirectUrl(shortUrl);
+
+            if (!resolvedUrl) {
+                Alert.alert("리다이렉션 실패", "단축 URL을 실제 URL로 변환하지 못했습니다.");
+                return;
+            }
+
             const response = await axios.post(
-                `${API_BASE_URL}/api/gpt/extract-store-info`,
-                { text: link },
+                `${API_BASE_URL}/api/firecrawl/extract-store-info`,
+                {
+                    text: link,
+                    resolvedUrl: resolvedUrl,
+                },
                 {
                     headers: {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${token}`,
                     },
-                    timeout: 25000,
+                    timeout: 100000,
                 }
             );
 

@@ -12,7 +12,7 @@ import { getApiBaseUrl } from "@/utils/api";
 interface InfoBoxProps {
     name: string;
     location: string;
-    status?: string; // ✅ 옵셔널로 변경
+    status?: string;
     hours: string;
     originalUrl?: string;
     currentTab?: "home" | "like";
@@ -24,7 +24,7 @@ interface InfoBoxProps {
 export default function InfoBox({
                                     name,
                                     location,
-                                    status = "영업중", // ✅ 기본값 지정
+                                    status = "영업중",
                                     hours,
                                     originalUrl,
                                     currentTab = "home",

@@ -10,7 +10,7 @@ interface Store {
     id: string;
     name: string;
     location: string;
-    status?: "영업중" | "곧마감" | "마감"; // 👈 옵셔널 처리
+    status?: "영업중" | "곧마감" | "마감";
     hours: string;
     category: string;
     originalUrl?: string;

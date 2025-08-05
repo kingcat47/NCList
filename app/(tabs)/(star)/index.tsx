@@ -17,7 +17,7 @@ interface Store {
     id: string;
     name: string;
     location: string;
-    status?: "영업중" | "곧마감" | "마감"; // ✅ 옵셔널로 변경
+    status?: "영업중" | "곧마감" | "마감";
     hours: string;
     category: string;
     originalUrl?: string;
@@ -90,7 +90,7 @@ export default function Like() {
                             key={store.id}
                             name={store.name}
                             location={store.location}
-                            status={store.status ?? "영업중"} // ✅ fallback 처리
+                            status={store.status ?? "영업중"}
                             hours={store.hours}
                             originalUrl={store.originalUrl}
                             storeId={store.id}
