@@ -21,6 +21,13 @@ interface InfoBoxProps {
     onLongPress?: () => void;
 }
 
+// 문자열에서 "24시간"이 포함되어 있으면(띄어쓰기 무관)
+const is24Hours = (hours?: string) => {
+    if (!hours) return false;
+    // 공백 모두 제거해서 "24시간"이 포함되는지 확인
+    return hours.replace(/\s/g, "").includes("24시간");
+};
+
 const parseHours = (hours: string): { open: number; close: number } | null => {
     const separator = hours.includes("~") ? "~" : hours.includes("-") ? "-" : null;
     if (!separator) return null;
@@ -40,6 +47,7 @@ const getStatusFromHours = (
     hours?: string
 ): "영업중" | "곧마감" | "마감" => {
     if (!hours) return "마감";
+    if (is24Hours(hours)) return "영업중";  // robust하게 처리!
     const timeRange = parseHours(hours);
     if (!timeRange) return "마감";
     const now = new Date();
@@ -66,6 +74,10 @@ export default function InfoBox({
                                     onLongPress,
                                 }: InfoBoxProps) {
     const [showPopup, setShowPopup] = useState(false);
+
+
+    console.log("[InfoBox] hours:", hours);
+
     const displayStatus = status ?? getStatusFromHours(hours);
     const truncateTitle = (title: string, maxLength = 8) =>
         title.length > maxLength ? title.slice(0, maxLength) + "..." : title;

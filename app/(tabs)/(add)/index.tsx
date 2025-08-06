@@ -18,40 +18,69 @@ export default function Add() {
         setLink("");
     };
 
+    // 전체 텍스트에서 naver.me 단축 URL만 추출
     const extractShortUrl = (text: string): string | null => {
         const match = text.match(/https:\/\/naver\.me\/\S+/);
         return match ? match[0] : null;
     };
 
+    // 단축 URL을 실제 네이버 지도 장소 URL로 변환 (리다이렉트 추적)
     const resolveRedirectUrl = async (shortUrl: string): Promise<string | null> => {
         try {
             const response = await axios.get(shortUrl, {
                 maxRedirects: 5,
+                timeout: 10000,
             });
-            const finalUrl = response.request?.responseURL || response.request?.res?.responseUrl;
-            if (!finalUrl) {
+
+            const fullUrl =
+                response.request?.responseURL || response.request?.res?.responseUrl;
+
+            if (!fullUrl) {
                 console.warn("[Add] 최종 URL 추출 실패 (responseURL 없음)");
                 return null;
             }
-            const match = finalUrl.match(/https:\/\/map\.naver\.com\/p\/entry\/place\/\d+/);
-            const resolved = match ? match[0] : finalUrl;
-            console.log("[Add] 리다이렉션 거친 최종 URL:", resolved);
-            return resolved;
+
+
+            const trimmedUrl = fullUrl.split("?")[0];
+
+
+            const match = trimmedUrl.match(
+                /^https:\/\/map\.naver\.com\/p\/entry\/place\/\d+$/
+            );
+
+            if (!match) {
+                console.warn("[Add] 예상치 못한 URL 형식:", trimmedUrl);
+            } else {
+                console.log("[Add] 최종 URL:", trimmedUrl);
+            }
+
+            return trimmedUrl;
         } catch (err) {
             console.error("[Add] 리다이렉션 추출 실패:", err);
             return null;
         }
     };
 
+    const extractTextWithoutUrl = (fullText: string): string => {
+
+        return fullText.replace(/https?:\/\/\S+/g, "").trim();
+    };
+
     const handleExtractStoreInfo = async () => {
         try {
             console.log("[Add] 요청 시작, loading true");
             setLoading(true);
-            setLink("");
 
             const token = await AsyncStorage.getItem("accessToken");
             if (!token) {
                 Alert.alert("인증 필요", "로그인 후 사용해주세요.");
+                setLoading(false);
+                return;
+            }
+
+
+            if (!link.trim()) {
+                Alert.alert("입력 오류", "네이버 지도 공유 텍스트를 입력해주세요.");
                 setLoading(false);
                 return;
             }
@@ -70,11 +99,18 @@ export default function Add() {
                 return;
             }
 
+
+            const textWithoutUrl = extractTextWithoutUrl(link);
+
+            setLink("");
+
+
             const response = await axios.post(
                 `${API_BASE_URL}/api/firecrawl/extract-store-info`,
                 {
-                    text: link,
-                    resolvedUrl,
+                    fullText: link,
+                    textWithoutUrl,
+                    resolvedUrl,            // 네이버 지도 실제 장소 URL (크롤링 대상)
                 },
                 {
                     headers: {
@@ -108,7 +144,14 @@ export default function Add() {
 
     return (
         <View style={styles.container}>
-            <Input value={link} onChangeText={setLink} editable={!loading} />
+            <Input
+                value={link}
+                onChangeText={setLink}
+                placeholder="네이버 지도 공유 텍스트를 입력하세요"
+                editable={!loading}
+                multiline
+                numberOfLines={4}
+            />
 
             {loading && <LoadingDots />}
 
