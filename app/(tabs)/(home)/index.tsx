@@ -1,10 +1,19 @@
 import React, { useState, useCallback } from "react";
-import { ScrollView, StyleSheet, View, ActivityIndicator, Text } from "react-native";
+import {
+    ScrollView,
+    StyleSheet,
+    View,
+    ActivityIndicator,
+    Text,
+    TouchableOpacity,
+    Modal,
+} from "react-native";
 import InfoBox from "@/components/mycomponents/InfoBox";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { getApiBaseUrl } from "../../../utils/api";
+import useFilterStore from "../../../zustand/filterStore";
 
 interface Store {
     id: string;
@@ -16,9 +25,7 @@ interface Store {
     originalUrl?: string;
 }
 
-// 영업시간 문자열 파싱 (분 단위로 변환)
 const parseHours = (hours: string): { open: number; close: number } | null => {
-
     const separator = hours.includes("~") ? "~" : "-";
     if (!hours.includes(separator)) return null;
 
@@ -60,6 +67,11 @@ export default function Home() {
     const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const showFilter = useFilterStore((state) => state.showFilter);
+    const setShowFilter = useFilterStore((state) => state.setShowFilter);
+    const categoryFilter = useFilterStore((state) => state.categoryFilter);
+    const setCategoryFilter = useFilterStore((state) => state.setCategoryFilter);
+
     const API_BASE_URL = getApiBaseUrl();
 
     const fetchStores = async () => {
@@ -85,20 +97,77 @@ export default function Home() {
         }, [])
     );
 
+    const categories = [
+        "전체",
+        "음식점",
+        "카페",
+        "헬스장",
+        "의료",
+        "숙박",
+        "기타",
+    ];
+
+    const onSelectCategory = (category: string) => {
+        setCategoryFilter(category);
+        setShowFilter(false);
+    };
+
+    const filteredStores =
+        categoryFilter === "전체"
+            ? stores
+            : stores.filter((store) => store.category === categoryFilter);
+
     return (
         <View style={styles.container}>
+            <Modal
+                transparent
+                visible={showFilter}
+                animationType="fade"
+                onRequestClose={() => setShowFilter(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowFilter(false)}
+                >
+                    <View style={styles.menu}>
+                        {categories.map((cat) => (
+                            <TouchableOpacity
+                                key={cat}
+                                onPress={() => onSelectCategory(cat)}
+                                style={styles.menuItem}
+                                activeOpacity={0.7}
+                            >
+                                <Text
+                                    style={[
+                                        styles.menuText,
+                                        categoryFilter === cat && {
+                                            fontWeight: "bold",
+                                            color: "#03C75A",
+                                        },
+                                    ]}
+                                >
+                                    {cat}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
             {loading ? (
                 <ActivityIndicator size="large" color="#03C75A" />
-            ) : stores.length === 0 ? (
-                <Text style={styles.emptyText}>좋아하는 장소를 추가해보세요</Text>
+            ) : filteredStores.length === 0 ? (
+                <Text style={styles.emptyText}>
+                    선택한 카테고리에 해당하는 가게가 없습니다.
+                </Text>
             ) : (
                 <ScrollView
                     style={styles.InfoBox_List}
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    {stores.map((store) => {
-                        // status가 있으면 그 값 사용, 없으면 hours 기준으로 계산
+                    {filteredStores.map((store) => {
                         const status = store.status ?? getStatus(store.hours);
                         return (
                             <InfoBox
@@ -124,6 +193,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: "#fff",
         paddingHorizontal: 20,
+        paddingTop: 0,
     },
     InfoBox_List: {
         flex: 1,
@@ -132,11 +202,39 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         gap: 16,
+        paddingBottom: 20,
     },
     emptyText: {
         fontSize: 18,
         fontWeight: "500",
         color: "#868686",
         textAlign: "center",
+        marginTop: 20,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.1)",
+        justifyContent: "flex-start",
+        alignItems: "flex-end",
+    },
+    menu: {
+        width: 140,
+        backgroundColor: "#fff",
+        borderRadius: 6,
+        marginTop: 50,
+        marginRight: 10,
+        paddingVertical: 8,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    menuItem: {
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+    },
+    menuText: {
+        fontSize: 16,
+        color: "#333",
     },
 });

@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import FillterBox from "../../../components/mycomponents/FillterBox";
 
 export default function BuckLayout() {
     return (
@@ -8,15 +9,14 @@ export default function BuckLayout() {
                 options={{
                     headerShown: true,
                     title: "Home",
-                    headerStyle: {
-                        backgroundColor: '#fff',
-                    },
+                    headerStyle: { backgroundColor: "#fff" },
                     headerTitleStyle: {
-                        color: '#1C1B1F',
+                        color: "#1C1B1F",
                         fontSize: 18,
-                        fontWeight: '600',
+                        fontWeight: "600",
                     },
                     headerShadowVisible: true,
+                    headerRight: () => <FillterBox />,
                 }}
             />
         </Stack>

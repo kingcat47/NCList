@@ -40,9 +40,7 @@ export default function Add() {
                 return null;
             }
 
-
             const trimmedUrl = fullUrl.split("?")[0];
-
 
             const match = trimmedUrl.match(
                 /^https:\/\/map\.naver\.com\/p\/entry\/place\/\d+$/
@@ -62,7 +60,6 @@ export default function Add() {
     };
 
     const extractTextWithoutUrl = (fullText: string): string => {
-
         return fullText.replace(/https?:\/\/\S+/g, "").trim();
     };
 
@@ -77,7 +74,6 @@ export default function Add() {
                 setLoading(false);
                 return;
             }
-
 
             if (!link.trim()) {
                 Alert.alert("입력 오류", "네이버 지도 공유 텍스트를 입력해주세요.");
@@ -99,18 +95,16 @@ export default function Add() {
                 return;
             }
 
-
             const textWithoutUrl = extractTextWithoutUrl(link);
 
             setLink("");
-
 
             const response = await axios.post(
                 `${API_BASE_URL}/api/firecrawl/extract-store-info`,
                 {
                     fullText: link,
                     textWithoutUrl,
-                    resolvedUrl,            // 네이버 지도 실제 장소 URL (크롤링 대상)
+                    resolvedUrl, // 네이버 지도 실제 장소 URL (크롤링 대상)
                 },
                 {
                     headers: {
@@ -153,8 +147,6 @@ export default function Add() {
                 numberOfLines={4}
             />
 
-            {loading && <LoadingDots />}
-
             <View style={styles.buttons}>
                 <Button
                     title="Ok"
@@ -177,6 +169,12 @@ export default function Add() {
                     disabled={loading}
                 />
             </View>
+
+            {loading && (
+                <View style={styles.loadingContainer}>
+                    <LoadingDots />
+                </View>
+            )}
         </View>
     );
 }
@@ -186,13 +184,17 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFF",
         flex: 1,
         alignItems: "center",
-        paddingTop: 20,
+
     },
     buttons: {
         flexDirection: "row",
         justifyContent: "space-between",
         width: "100%",
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
+
+    },
+    loadingContainer: {
         marginTop: 20,
+        alignSelf: "center",
     },
 });

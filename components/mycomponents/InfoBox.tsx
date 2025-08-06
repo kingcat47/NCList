@@ -21,44 +21,65 @@ interface InfoBoxProps {
     onLongPress?: () => void;
 }
 
-// 문자열에서 "24시간"이 포함되어 있으면(띄어쓰기 무관)
+// "24시간" 텍스트 포함 여부 및 00:00-24:00 형식 체크
 const is24Hours = (hours?: string) => {
     if (!hours) return false;
-    // 공백 모두 제거해서 "24시간"이 포함되는지 확인
-    return hours.replace(/\s/g, "").includes("24시간");
+    const trimmed = hours.replace(/\s/g, "");
+    return (
+        trimmed.includes("24시간") ||
+        trimmed === "00:00~24:00" ||
+        trimmed === "00:00-24:00" ||
+        trimmed === "0:00~24:00" ||
+        trimmed === "0:00-24:00"
+    );
 };
 
+// 시간 파싱 (문자열 → 분)
 const parseHours = (hours: string): { open: number; close: number } | null => {
     const separator = hours.includes("~") ? "~" : hours.includes("-") ? "-" : null;
     if (!separator) return null;
+
     const [openStr, closeStr] = hours.split(separator).map((s) => s.trim());
+
     const toMinutes = (time: string) => {
         const [h, m] = time.split(":").map(Number);
         if (isNaN(h) || isNaN(m)) return -1;
+        if (h === 24 && m === 0) return 1440;
+        if (h > 24 || m >= 60) return -1;
         return h * 60 + m;
     };
+
     const open = toMinutes(openStr);
     const close = toMinutes(closeStr);
+
     if (open < 0 || close < 0) return null;
     return { open, close };
 };
 
-const getStatusFromHours = (
-    hours?: string
-): "영업중" | "곧마감" | "마감" => {
+// 영업 상태 계산
+const getStatusFromHours = (hours?: string): "영업중" | "곧마감" | "마감" => {
     if (!hours) return "마감";
-    if (is24Hours(hours)) return "영업중";  // robust하게 처리!
+    if (is24Hours(hours)) {
+        return "영업중";
+    }
+
     const timeRange = parseHours(hours);
     if (!timeRange) return "마감";
+
+    const { open, close } = timeRange;
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    if (nowMinutes < timeRange.open || nowMinutes > timeRange.close) {
+
+    const duration = close - open;
+    if (duration <= 60) return "영업중";
+
+    if (nowMinutes < open || nowMinutes >= close) {
         return "마감";
     }
-    const diff = timeRange.close - nowMinutes;
-    if (diff <= 60) {
-        return "곧마감";
-    }
+
+    const diff = close - nowMinutes;
+    if (diff <= 60) return "곧마감";
+
     return "영업중";
 };
 
@@ -74,9 +95,6 @@ export default function InfoBox({
                                     onLongPress,
                                 }: InfoBoxProps) {
     const [showPopup, setShowPopup] = useState(false);
-
-
-    console.log("[InfoBox] hours:", hours);
 
     const displayStatus = status ?? getStatusFromHours(hours);
     const truncateTitle = (title: string, maxLength = 8) =>
@@ -119,7 +137,7 @@ export default function InfoBox({
             setShowPopup(false);
             onDeleted?.(storeId!);
         } catch {
-            // 삭제 실패 시 로그만 남김
+            // 실패 시 무시
         }
     };
 
@@ -181,6 +199,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 12,
         width: 340,
+        height:80,
     },
     line1: {
         flexDirection: "row",

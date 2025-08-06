@@ -5,6 +5,8 @@ import {
     View,
     ActivityIndicator,
     Text,
+    TouchableOpacity,
+    Modal,
 } from "react-native";
 import InfoBox from "@/components/mycomponents/InfoBox";
 import DeletePopup from "@/components/mycomponents/DeletePopup";
@@ -12,6 +14,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { getApiBaseUrl } from "@/utils/api";
+import useFilterStore from "../../../zustand/filterStore";  // zustand 훅 임포트
 
 interface Store {
     id: string;
@@ -27,6 +30,12 @@ export default function Like() {
     const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+
+    // zustand 상태 구독
+    const showFilter = useFilterStore((state) => state.showFilter);
+    const setShowFilter = useFilterStore((state) => state.setShowFilter);
+    const categoryFilter = useFilterStore((state) => state.categoryFilter);
+    const setCategoryFilter = useFilterStore((state) => state.setCategoryFilter);
 
     const API_BASE_URL = getApiBaseUrl();
 
@@ -47,64 +56,148 @@ export default function Like() {
         }
     };
 
-    const handleDeleted = (deletedId: string) => {
-        setStores((prev) => prev.filter((store) => store.id !== deletedId));
-        setSelectedStoreId(null);
-    };
-
-    const handleDeleteConfirm = async () => {
-        try {
-            if (!selectedStoreId) return;
-            const token = await AsyncStorage.getItem("accessToken");
-            await axios.delete(`${API_BASE_URL}/api/stores/${selectedStoreId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            handleDeleted(selectedStoreId);
-        } catch (error) {
-            console.error("삭제 실패:", error);
-        }
-    };
-
     useFocusEffect(
         useCallback(() => {
             fetchStores();
         }, [])
     );
 
+    const categories = [
+        "전체",
+        "음식점",
+        "카페",
+        "헬스장",
+        "의료",
+        "숙박",
+        "기타",
+    ];
+
+    const onSelectCategory = (category: string) => {
+        setCategoryFilter(category);
+        setShowFilter(false);
+    };
+
+    const filteredStores =
+        categoryFilter === "전체"
+            ? stores
+            : stores.filter((store) => store.category === categoryFilter);
+
+    const getStatus = (hours: string): "영업중" | "곧마감" | "마감" => {
+        const separator = hours.includes("~") ? "~" : "-";
+        if (!hours.includes(separator)) return "마감";
+
+        const [openStr, closeStr] = hours.split(separator).map((s) => s.trim());
+
+        const toMinutes = (time: string) => {
+            const [h, m] = time.split(":").map(Number);
+            if (isNaN(h) || isNaN(m)) return -1;
+            return h * 60 + m;
+        };
+
+        const open = toMinutes(openStr);
+        const close = toMinutes(closeStr);
+        if (open < 0 || close < 0) return "마감";
+
+        const now = new Date();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+        if (nowMinutes < open || nowMinutes > close) {
+            return "마감";
+        }
+
+        const diff = close - nowMinutes;
+        if (diff <= 60) {
+            return "곧마감";
+        }
+
+        return "영업중";
+    };
+
     return (
         <View style={styles.container}>
+            {/* 필터 모달 */}
+            <Modal
+                transparent
+                visible={showFilter}
+                animationType="fade"
+                onRequestClose={() => setShowFilter(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowFilter(false)}
+                >
+                    <View style={styles.menu}>
+                        {categories.map((cat) => (
+                            <TouchableOpacity
+                                key={cat}
+                                onPress={() => onSelectCategory(cat)}
+                                style={styles.menuItem}
+                                activeOpacity={0.7}
+                            >
+                                <Text
+                                    style={[
+                                        styles.menuText,
+                                        categoryFilter === cat && {
+                                            fontWeight: "bold",
+                                            color: "#03C75A",
+                                        },
+                                    ]}
+                                >
+                                    {cat}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
             {loading ? (
                 <ActivityIndicator size="large" color="#03C75A" />
-            ) : stores.length === 0 ? (
-                <Text style={styles.emptyText}>좋아하는 장소가 없습니다</Text>
+            ) : filteredStores.length === 0 ? (
+                <Text style={styles.emptyText}>선택한 카테고리에 해당하는 가게가 없습니다.</Text>
             ) : (
                 <ScrollView
                     style={styles.InfoBox_List}
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    {stores.map((store) => (
+                    {filteredStores.map((store) => (
                         <InfoBox
                             key={store.id}
                             name={store.name}
                             location={store.location}
-                            status={store.status ?? undefined}
+                            status={store.status ?? getStatus(store.hours)}
                             hours={store.hours}
                             originalUrl={store.originalUrl}
                             storeId={store.id}
                             currentTab="like"
-                            onDeleted={handleDeleted}
+                            onDeleted={(deletedId: string) =>
+                                setStores((prev) => prev.filter((s) => s.id !== deletedId))
+                            }
                             onLongPress={() => setSelectedStoreId(store.id)}
                         />
                     ))}
                 </ScrollView>
             )}
 
+            {/* 삭제 모달 */}
             {selectedStoreId && (
                 <DeletePopup
-                    onConfirm={handleDeleteConfirm}
+                    onConfirm={async () => {
+                        try {
+                            const token = await AsyncStorage.getItem("accessToken");
+                            await axios.delete(`${API_BASE_URL}/api/stores/${selectedStoreId}`, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            });
+                            setStores((prev) => prev.filter((s) => s.id !== selectedStoreId));
+                            setSelectedStoreId(null);
+                        } catch (e) {
+                            console.error("삭제 실패", e);
+                        }
+                    }}
                     onCancel={() => setSelectedStoreId(null)}
                 />
             )}
@@ -116,9 +209,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
-        justifyContent: "center",
         backgroundColor: "#fff",
         paddingHorizontal: 20,
+        justifyContent: "center",
     },
     InfoBox_List: {
         flex: 1,
@@ -127,11 +220,39 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         gap: 16,
+        paddingBottom: 20,
     },
     emptyText: {
         fontSize: 18,
         fontWeight: "500",
         color: "#868686",
         textAlign: "center",
+        marginTop: 20,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.1)",
+        justifyContent: "flex-start",
+        alignItems: "flex-end",
+    },
+    menu: {
+        width: 140,
+        backgroundColor: "#fff",
+        borderRadius: 6,
+        marginTop: 50,
+        marginRight: 10,
+        paddingVertical: 8,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    menuItem: {
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+    },
+    menuText: {
+        fontSize: 16,
+        color: "#333",
     },
 });
