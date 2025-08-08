@@ -1,20 +1,19 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
-// @ts-ignore
-import LinkIcon from "../../assets/svg/link.svg";
 
 interface InputProps extends TextInputProps {
     // 혹시 모르니까
 }
 
-export default function InputStoreName(props: InputProps) {
+export default function OhuYeah(props: InputProps) {
     return (
         <View style={styles.container}>
-            <Text style={styles.text_main}>저장될 이름을 적어주세요</Text>
+            <Text style={styles.text_main}>가게 정보를 입력해주세요</Text>
 
             <View style={styles.inputWrapper}>
                 <TextInput
                     style={styles.input}
+                    placeholder="서브웨이, 행복약국, 민준이네집 등등"
                     placeholderTextColor="#aaa"
                     {...props}
                 />
@@ -27,7 +26,7 @@ const styles = StyleSheet.create({
     container: {
         marginTop: 20,
         width: "100%",
-        padding: 16,
+        paddingHorizontal: 16,
     },
     text_main: {
         fontFamily: "Pretendard",

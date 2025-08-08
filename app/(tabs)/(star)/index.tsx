@@ -14,7 +14,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { getApiBaseUrl } from "@/utils/api";
-import useFilterStore from "../../../zustand/filterStore";  // zustand 훅 임포트
+import useFilterStore from "../../../zustand/filterStore";
 
 interface Store {
     id: string;
@@ -25,6 +25,46 @@ interface Store {
     category: string;
     originalUrl?: string;
 }
+
+const getTodayKey = () => {
+    const dayMap = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+    ] as const;
+    return dayMap[new Date().getDay()];
+};
+
+const toMinutes = (time: string) => {
+    const [h, m] = (time ?? "").split(":").map(Number);
+    if (isNaN(h) || isNaN(m)) return -1;
+    return h * 60 + m;
+};
+
+const getStatus = (hours?: string): "영업중" | "곧마감" | "마감" => {
+    if (!hours || typeof hours !== "string") return "마감";
+
+    const separator = hours.includes("~") ? "~" : "-";
+    if (!hours.includes(separator)) return "마감";
+
+    const [openStr, closeStr] = hours.split(separator).map((s) => s.trim());
+    const open = toMinutes(openStr);
+    const close = toMinutes(closeStr);
+    if (open < 0 || close < 0) return "마감";
+
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (nowMinutes < open || nowMinutes > close) return "마감";
+
+    const diff = close - nowMinutes;
+    if (diff <= 60) return "곧마감";
+    return "영업중";
+};
 
 export default function Like() {
     const [stores, setStores] = useState<Store[]>([]);
@@ -48,9 +88,25 @@ export default function Like() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setStores(response.data.data);
+
+            const todayKey = getTodayKey();
+            const mappedStores: Store[] = response.data.data.map((s: any) => {
+
+                const todayHours = typeof s[todayKey] === "string" ? s[todayKey] : "";
+
+                return {
+                    id: s.id,
+                    name: s.name,
+                    location: s.location,
+                    hours: todayHours,
+                    category: s.category,
+                    originalUrl: s.link ?? s.url,
+                };
+            });
+
+            setStores(mappedStores);
         } catch (error) {
-            // console.error("좋아요 가게를 불러오는 데 실패했습니다.", error);
+            //console.error("좋아요 가게를 불러오는 데 실패했습니다.", error);
         } finally {
             setLoading(false);
         }
@@ -64,9 +120,9 @@ export default function Like() {
 
     const categories = [
         "전체",
-        "음식점",
+        "음식",
         "카페",
-        "헬스장",
+        "헬스",
         "의료",
         "숙박",
         "기타",
@@ -82,40 +138,9 @@ export default function Like() {
             ? stores
             : stores.filter((store) => store.category === categoryFilter);
 
-    const getStatus = (hours: string): "영업중" | "곧마감" | "마감" => {
-        const separator = hours.includes("~") ? "~" : "-";
-        if (!hours.includes(separator)) return "마감";
-
-        const [openStr, closeStr] = hours.split(separator).map((s) => s.trim());
-
-        const toMinutes = (time: string) => {
-            const [h, m] = time.split(":").map(Number);
-            if (isNaN(h) || isNaN(m)) return -1;
-            return h * 60 + m;
-        };
-
-        const open = toMinutes(openStr);
-        const close = toMinutes(closeStr);
-        if (open < 0 || close < 0) return "마감";
-
-        const now = new Date();
-        const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
-        if (nowMinutes < open || nowMinutes > close) {
-            return "마감";
-        }
-
-        const diff = close - nowMinutes;
-        if (diff <= 60) {
-            return "곧마감";
-        }
-
-        return "영업중";
-    };
-
     return (
         <View style={styles.container}>
-            {/* 필터 모달 */}
+
             <Modal
                 transparent
                 visible={showFilter}
@@ -181,7 +206,6 @@ export default function Like() {
                 </ScrollView>
             )}
 
-            {/* 삭제 모달 */}
             {selectedStoreId && (
                 <DeletePopup
                     onConfirm={async () => {
@@ -195,7 +219,7 @@ export default function Like() {
                             setStores((prev) => prev.filter((s) => s.id !== selectedStoreId));
                             setSelectedStoreId(null);
                         } catch (e) {
-                            console.error("삭제 실패", e);
+                            //console.error("삭제 실패", e);
                         }
                     }}
                     onCancel={() => setSelectedStoreId(null)}

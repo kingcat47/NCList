@@ -10,8 +10,6 @@ interface InputProps extends TextInputProps {
 export default function Input(props: InputProps) {
     return (
         <View style={styles.container}>
-            <Text style={styles.text_main}>가게 링크를 넣어주세요</Text>
-
             <View style={styles.inputWrapper}>
                 <LinkIcon width={24} height={24} style={styles.icon} />
                 <TextInput
@@ -27,7 +25,6 @@ export default function Input(props: InputProps) {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 20,
         width: "100%",
         padding: 16,
     },

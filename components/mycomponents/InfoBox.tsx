@@ -69,7 +69,6 @@ const getStatusFromHours = (hours?: string): "영업중" | "곧마감" | "마감
     const { open, close } = timeRange;
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
     const duration = close - open;
     if (duration <= 60) return "영업중";
 

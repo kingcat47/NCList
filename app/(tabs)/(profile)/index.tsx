@@ -31,7 +31,7 @@ interface Store {
     name: string;
     location: string;
     hours: string;
-    category: "음식점" | "카페" | "헬스장" | "의료" | "숙박" | "기타";
+    category: "음식" | "카페" | "헬스" | "의료" | "숙박" | "기타";
     originalUrl?: string;
 }
 
@@ -43,9 +43,9 @@ export default function Profile() {
     const [stores, setStores] = useState<Store[]>([]);
 
     const [categoryCounts, setCategoryCounts] = useState<Record<Store["category"], number>>({
-        음식점: 0,
+        음식: 0,
         카페: 0,
-        헬스장: 0,
+        헬스: 0,
         의료: 0,
         숙박: 0,
         기타: 0,
@@ -76,9 +76,9 @@ export default function Profile() {
             setStores(fetchedStores);
 
             const counts: Record<Store["category"], number> = {
-                음식점: 0,
+                음식: 0,
                 카페: 0,
-                헬스장: 0,
+                헬스: 0,
                 의료: 0,
                 숙박: 0,
                 기타: 0,
@@ -90,7 +90,7 @@ export default function Profile() {
 
             setCategoryCounts(counts);
         } catch (error) {
-            console.error("스토어 불러오기 실패:", error);
+            //console.error("스토어 불러오기 실패:", error);
         }
     };
 
@@ -145,16 +145,16 @@ export default function Profile() {
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    <CategorizeBox title="음식점" number={categoryCounts.음식점} color="#FB923C" icon={FoodIcon} />
+                    <CategorizeBox title="음식" number={categoryCounts.음식} color="#FB923C" icon={FoodIcon} />
                     <CategorizeBox title="카페" number={categoryCounts.카페} color="#FBBF24" icon={CoffeIcon} />
-                    <CategorizeBox title="헬스장" number={categoryCounts.헬스장} color="#60A5FA" icon={HealthIcon} />
+                    <CategorizeBox title="헬스" number={categoryCounts.헬스} color="#60A5FA" icon={HealthIcon} />
                     <CategorizeBox title="의료" number={categoryCounts.의료} color="#4ADE80" icon={HeartIcon} />
                     <CategorizeBox title="숙박" number={categoryCounts.숙박} color="#A78BFA" icon={BedIcon} />
                     <CategorizeBox title="기타" number={categoryCounts.기타} color="#9CA3AF" icon={MoreIcon} />
 
                     <View style={styles.buttonContainer}>
                         <Button title="로그아웃" onPress={handleLogout} style={styles.logoutButton} />
-                        <Button title="새로고침" onPress={forceRefresh} style={styles.refreshButton} />
+                        {/*<Button title="새로고침" onPress={forceRefresh} style={styles.refreshButton} />*/}
                     </View>
                 </ScrollView>
             ) : (
@@ -194,6 +194,7 @@ const styles = StyleSheet.create({
     },
     logoutButton: {
         backgroundColor: "#FF3B30",
+        marginBottom: 10,
     },
     refreshButton: {
         backgroundColor: "#34C759",

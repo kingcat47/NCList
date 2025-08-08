@@ -43,10 +43,10 @@ function RootLayoutInner() {
         }
     }, [loading]);
 
-    const borderColor = animatedValue.interpolate({
-        inputRange: [0, 0.5, 1],
-        outputRange: ["#03C75A", "#A0E6A0", "#03C75A"],
-    });
+    // const borderColor = animatedValue.interpolate({
+    //     inputRange: [0, 0.5, 1],
+    //     outputRange: ["#03C75A", "#A0E6A0", "#03C75A"],
+    // });
 
     const checkTokenOnAppStart = async () => {
         console.log("[RootLayoutInner] Checking token on app start...");
@@ -69,7 +69,7 @@ function RootLayoutInner() {
     };
 
     return (
-        <Animated.View style={[styles.container, { borderColor, borderWidth: loading ? 6 : 0 }]}>
+        <Animated.View style={[styles.container, {  borderWidth: loading ? 6 : 0 }]}>
             <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="login" />

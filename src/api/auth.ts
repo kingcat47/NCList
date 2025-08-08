@@ -60,7 +60,7 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       console.log('백엔드 서버 연결 실패');
-      console.log('로그인 에러:', error.message);
+      // console.log('로그인 에러:', error.message);
 
 
       throw error;
@@ -73,7 +73,7 @@ export const authAPI = {
       const response = await api.get('/auth/verify-token');
       return response.data;
     } catch (error: any) {
-      console.log('토큰 검증 실패:', error.message);
+      // console.log('토큰 검증 실패:', error.message);
       throw error;
     }
   },
@@ -105,10 +105,10 @@ export const authAPI = {
       }
 
       const user = JSON.parse(userStr);
-      console.log('파싱된 사용자 정보:', user);
+      // console.log('파싱된 사용자 정보:', user);
       return user;
     } catch (error) {
-      console.log('사용자 정보 조회 중 오류:', error);
+      // console.log('사용자 정보 조회 중 오류:', error);
       return null;
     }
   },
@@ -119,7 +119,7 @@ export const authAPI = {
       const token = await AsyncStorage.getItem('accessToken');
       return !!token;
     } catch (error) {
-      console.log('로그인 상태 확인 중 오류:', error);
+      // console.log('로그인 상태 확인 중 오류:', error);
       return false;
     }
   },

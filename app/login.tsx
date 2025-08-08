@@ -30,7 +30,7 @@ export default function LoginScreen() {
       setIsCodeSent(true);
       Alert.alert('성공', '인증 코드가 전송되었습니다.\n서버 콘솔에서 코드를 확인하세요.');
     } catch (error: any) {
-      console.error('API 에러:', error);
+      //console.error('API 에러:', error);
       let errorMessage = '인증 코드 전송에 실패했습니다.';
       
       if (error.response) {

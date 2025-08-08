@@ -19,13 +19,19 @@ interface Store {
     id: string;
     name: string;
     location: string;
-    status?: "영업중" | "곧마감" | "마감";
-    hours: string;
+    monday: string;
+    tuesday: string;
+    wednesday: string;
+    thursday: string;
+    friday: string;
+    saturday: string;
+    sunday: string;
     category: string;
-    originalUrl?: string;
+    link?: string;
 }
 
 const parseHours = (hours: string): { open: number; close: number } | null => {
+    if (!hours) return null;
     const separator = hours.includes("~") ? "~" : "-";
     if (!hours.includes(separator)) return null;
 
@@ -43,8 +49,21 @@ const parseHours = (hours: string): { open: number; close: number } | null => {
     return { open, close };
 };
 
-const getStatus = (hours: string): "영업중" | "곧마감" | "마감" => {
-    const timeRange = parseHours(hours);
+const getStatus = (store: Store): "영업중" | "곧마감" | "마감" => {
+    const dayMap = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+    ] as const;
+
+    const todayKey = dayMap[new Date().getDay()];
+    const todayHours = store[todayKey];
+    const timeRange = parseHours(todayHours);
+
     if (!timeRange) return "마감";
 
     const now = new Date();
@@ -85,7 +104,7 @@ export default function Home() {
             });
             setStores(response.data.data);
         } catch (error) {
-            // console.error("가게 정보를 불러오는 데 실패했습니다.", error);
+            // //console.error("가게 정보를 불러오는 데 실패했습니다.", error);
         } finally {
             setLoading(false);
         }
@@ -99,9 +118,9 @@ export default function Home() {
 
     const categories = [
         "전체",
-        "음식점",
+        "음식",
         "카페",
-        "헬스장",
+        "헬스",
         "의료",
         "숙박",
         "기타",
@@ -168,15 +187,15 @@ export default function Home() {
                     showsVerticalScrollIndicator={false}
                 >
                     {filteredStores.map((store) => {
-                        const status = store.status ?? getStatus(store.hours);
+                        const status = getStatus(store);
                         return (
                             <InfoBox
                                 key={store.id}
                                 name={store.name}
                                 location={store.location}
                                 status={status}
-                                hours={store.hours}
-                                originalUrl={store.originalUrl}
+                                hours={store[getTodayKey()]}
+                                originalUrl={store.link}
                             />
                         );
                     })}
@@ -185,6 +204,19 @@ export default function Home() {
         </View>
     );
 }
+
+const getTodayKey = () => {
+    const dayMap = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+    ] as const;
+    return dayMap[new Date().getDay()];
+};
 
 const styles = StyleSheet.create({
     container: {

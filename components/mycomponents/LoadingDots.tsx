@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Animated, StyleSheet } from "react-native";
 
 export default function LoadingDots() {
-    const MAX_SECONDS = 25;
+    const MAX_SECONDS = 10;
     const [secondsLeft, setSecondsLeft] = useState(MAX_SECONDS);
     const dotAnim1 = useRef(new Animated.Value(0)).current;
     const dotAnim2 = useRef(new Animated.Value(0)).current;
@@ -56,7 +56,7 @@ export default function LoadingDots() {
             {
                 translateY: animatedValue.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, -8], // Y축으로만 움직임
+                    outputRange: [0, -6], // Y축으로만 움직임
                 }),
             },
         ],
@@ -93,8 +93,8 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     dot: {
-        width: 12,
-        height: 12,
+        width: 8,
+        height: 8,
         borderRadius: 6,
         backgroundColor: "#03C75A",
     },
