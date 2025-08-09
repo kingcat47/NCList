@@ -13,7 +13,7 @@ export default function OhuYeah(props: InputProps) {
             <View style={styles.inputWrapper}>
                 <TextInput
                     style={styles.input}
-                    placeholder="서브웨이, 행복약국, 민준이네집 등등"
+                    placeholder="서브웨이, 행복약국, 리본카페 등등"
                     placeholderTextColor="#aaa"
                     {...props}
                 />
