@@ -2,15 +2,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { authAPI } from '../src/api/auth';
 
@@ -20,25 +20,30 @@ export default function LoginScreen() {
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendCode = async () => {
+  // 전화번호 형식 검사 (010xxxxxxxx 또는 010-xxxx-xxxx 지원)
+  const isValidPhoneNumber = (phone: string) => {
+    const withoutDash = phone.replace(/-/g, "");
+    return /^01[016789]\d{7,8}$/.test(withoutDash);
+  };
 
+  const handleSendCode = async () => {
+    // 전화번호 형식 검사 및 안내
+    if (!isValidPhoneNumber(phoneNumber)) {
+      Alert.alert('알림', '올바른 전화번호를 입력해주세요.\n예) 01012345678 또는 010-1234-5678');
+      return;
+    }
     setIsLoading(true);
     try {
-      console.log('API 호출 시작:', phoneNumber);
       const result = await authAPI.sendVerificationCode(phoneNumber);
-      console.log('API 응답 받음:', result);
       setIsCodeSent(true);
-      Alert.alert('성공', '인증 코드가 전송되었습니다.\n서버 콘솔에서 코드를 확인하세요.');
+      Alert.alert('성공', '인증 코드가 전송되었습니다.\n문자가 올 때까지 기다려주세요.');
     } catch (error: any) {
-      //console.error('API 에러:', error);
       let errorMessage = '인증 코드 전송에 실패했습니다.';
-      
       if (error.response) {
         errorMessage = `서버 오류: ${error.response.data?.message || error.response.status}`;
       } else if (error.request) {
-        errorMessage = '서버에 연결할 수 없습니다.\n백엔드 서버가 실행 중인지 확인해주세요.';
+        errorMessage = '서버에 연결할 수 없습니다.\n전화번호가 제대로 입력되었는지 확인해주세요.';
       }
-      
       Alert.alert('오류', errorMessage);
     } finally {
       setIsLoading(false);
@@ -50,13 +55,12 @@ export default function LoginScreen() {
       Alert.alert('알림', '인증 코드를 입력해주세요.');
       return;
     }
-
     setIsLoading(true);
     try {
       const result = await authAPI.login(phoneNumber, verificationCode);
       await AsyncStorage.setItem('accessToken', result.accessToken);
       await AsyncStorage.setItem('user', JSON.stringify(result.user));
-      
+
       Alert.alert('성공', '로그인이 완료되었습니다!', [
         {
           text: '확인',
@@ -79,102 +83,102 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={handleBackToHome} style={styles.backButton}>
-              <Text style={styles.backButtonText}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>로그인</Text>
-            <View style={styles.placeholder} />
-          </View>
-
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>전화번호로 로그인</Text>
-            <Text style={styles.subtitle}>
-              서비스 이용을 위해 전화번호를 입력해주세요
-            </Text>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>전화번호</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="01012345678"
-                placeholderTextColor="#8A8A8A"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-                maxLength={13}
-                editable={!isCodeSent}
-              />
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={handleBackToHome} style={styles.backButton}>
+                <Text style={styles.backButtonText}>←</Text>
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>로그인</Text>
+              <View style={styles.placeholder} />
             </View>
 
-            {!isCodeSent ? (
-              <TouchableOpacity 
-                style={[
-                  styles.loginButton,
-                  phoneNumber.length >= 10 && styles.loginButtonActive
-                ]}
-                onPress={handleSendCode}
-                disabled={phoneNumber.length < 10 || isLoading}
-              >
-                <Text style={[
-                  styles.loginButtonText,
-                  phoneNumber.length >= 10 && styles.loginButtonTextActive
-                ]}>
-                  {isLoading ? '전송 중...' : '인증 코드 전송'}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>인증 코드</Text>
-                  <TextInput
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>전화번호로 로그인</Text>
+              <Text style={styles.subtitle}>
+                서비스 이용을 위해 전화번호를 입력해주세요
+              </Text>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>전화번호</Text>
+                <TextInput
                     style={styles.input}
-                    placeholder="6자리 코드 입력"
+                    placeholder="01012345678"
                     placeholderTextColor="#8A8A8A"
-                    value={verificationCode}
-                    onChangeText={setVerificationCode}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                  />
-                </View>
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    keyboardType="phone-pad"
+                    maxLength={13}
+                    editable={!isCodeSent}
+                />
+              </View>
 
-                <TouchableOpacity 
-                  style={[
-                    styles.loginButton,
-                    verificationCode.length === 6 && styles.loginButtonActive
-                  ]}
-                  onPress={handleLogin}
-                  disabled={verificationCode.length !== 6 || isLoading}
-                >
-                  <Text style={[
-                    styles.loginButtonText,
-                    verificationCode.length === 6 && styles.loginButtonTextActive
-                  ]}>
-                    {isLoading ? '로그인 중...' : '로그인'}
-                  </Text>
-                </TouchableOpacity>
+              {!isCodeSent ? (
+                  <TouchableOpacity
+                      style={[
+                        styles.loginButton,
+                        isValidPhoneNumber(phoneNumber) && styles.loginButtonActive
+                      ]}
+                      onPress={handleSendCode}
+                      disabled={!isValidPhoneNumber(phoneNumber) || isLoading}
+                  >
+                    <Text style={[
+                      styles.loginButtonText,
+                      isValidPhoneNumber(phoneNumber) && styles.loginButtonTextActive
+                    ]}>
+                      {isLoading ? '전송 중...' : '인증 코드 전송'}
+                    </Text>
+                  </TouchableOpacity>
+              ) : (
+                  <>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.inputLabel}>인증 코드</Text>
+                      <TextInput
+                          style={styles.input}
+                          placeholder="6자리 코드 입력"
+                          placeholderTextColor="#8A8A8A"
+                          value={verificationCode}
+                          onChangeText={setVerificationCode}
+                          keyboardType="number-pad"
+                          maxLength={6}
+                      />
+                    </View>
 
-                <TouchableOpacity 
-                  style={styles.resendButton}
-                  onPress={() => {
-                    setIsCodeSent(false);
-                    setVerificationCode('');
-                  }}
-                >
-                  <Text style={styles.resendButtonText}>다시 전송</Text>
-                </TouchableOpacity>
-              </>
-            )}
+                    <TouchableOpacity
+                        style={[
+                          styles.loginButton,
+                          verificationCode.length === 6 && styles.loginButtonActive
+                        ]}
+                        onPress={handleLogin}
+                        disabled={verificationCode.length !== 6 || isLoading}
+                    >
+                      <Text style={[
+                        styles.loginButtonText,
+                        verificationCode.length === 6 && styles.loginButtonTextActive
+                      ]}>
+                        {isLoading ? '로그인 중...' : '로그인'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.resendButton}
+                        onPress={() => {
+                          setIsCodeSent(false);
+                          setVerificationCode('');
+                        }}
+                    >
+                      <Text style={styles.resendButtonText}>다시 전송</Text>
+                    </TouchableOpacity>
+                  </>
+              )}
+            </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
   );
 }
 
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
     color: '#1C1B1F',
     textAlign: 'center',
   },
-    placeholder: {
+  placeholder: {
     width: 40,
   },
   formContainer: {
@@ -286,4 +290,4 @@ const styles = StyleSheet.create({
     color: '#146EFF',
     textDecorationLine: 'underline',
   },
-}); 
+});

@@ -102,7 +102,7 @@ export default function Add() {
             setStore_name("");
         } catch (error: any) {
             // //console.error("[Add] 에러 발생:", error?.response?.data || error);
-            Alert.alert("에러", "서버와 통신 중 문제가 발생했습니다.");
+            Alert.alert("에러", "지원하지 않는 형식의 가게입니다.");
         } finally {
             console.log("[Add] 요청 종료, loading false");
             setLoading(false);

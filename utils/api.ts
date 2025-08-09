@@ -1,6 +1,7 @@
 export const getApiBaseUrl = () => {
     if (__DEV__) {
-        return "http://172.30.1.79:3000";
+        // return "http://172.30.1.79:3000";
+        return "https://nclist.thnos.app";
     }
     return "https://nclist.thnos.app";
 };
