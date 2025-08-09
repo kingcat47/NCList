@@ -89,14 +89,12 @@ export default function Add() {
                         ? `월 ${info.monday}, 화 ${info.tuesday}, 수 ${info.wednesday}, 목 ${info.thursday}, 금 ${info.friday}, 토 ${info.saturday}, 일 ${info.sunday}`
                         : info.hours ?? "없음");
 
-            Alert.alert(
-                // "가게 정보 추출 성공",
-                // `이름: ${info.name ?? "없음"}\n` +
-                // `위치: ${info.address ?? info.location ?? "없음"}\n` +
-                // `영업시간: ${hoursText}\n` +
-                // `카테고리: ${info.category ?? "없음"}`
-                "가게가 추가되었습니다."
-            );
+            // Alert.alert(
+            //     "가게가 추가되었습니다."+
+            //     `\n이름: ${info.name ?? "없음"}` +
+            //     `위치: ${info.address ?? info.location ?? "없음"}\n` +
+            //     `카테고리: ${info.category ?? "없음"}`
+            // );
 
 
             // 입력 필드 초기화

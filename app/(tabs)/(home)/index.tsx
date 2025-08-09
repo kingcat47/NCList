@@ -74,12 +74,22 @@ const getStatus = (store: Store): "영업중" | "곧마감" | "마감" => {
     }
 
     const diff = timeRange.close - nowMinutes;
-
-    if (diff <= 60) {
-        return "곧마감";
-    }
+    if (diff <= 60) return "곧마감";
 
     return "영업중";
+};
+
+const getTodayKey = () => {
+    const dayMap = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+    ] as const;
+    return dayMap[new Date().getDay()];
 };
 
 export default function Home() {
@@ -104,7 +114,7 @@ export default function Home() {
             });
             setStores(response.data.data);
         } catch (error) {
-            // //console.error("가게 정보를 불러오는 데 실패했습니다.", error);
+            // console.error("가게 정보를 불러오는 데 실패했습니다.", error);
         } finally {
             setLoading(false);
         }
@@ -135,6 +145,12 @@ export default function Home() {
         categoryFilter === "전체"
             ? stores
             : stores.filter((store) => store.category === categoryFilter);
+
+
+    const statusPriority = { "영업중": 1, "곧마감": 2, "마감": 3 };
+    const sortedStores = [...filteredStores].sort(
+        (a, b) => statusPriority[getStatus(a)] - statusPriority[getStatus(b)]
+    );
 
     return (
         <View style={styles.container}>
@@ -176,7 +192,7 @@ export default function Home() {
 
             {loading ? (
                 <ActivityIndicator size="large" color="#03C75A" />
-            ) : filteredStores.length === 0 ? (
+            ) : sortedStores.length === 0 ? (
                 <Text style={styles.emptyText}>
                     선택한 카테고리에 해당하는 가게가 없습니다.
                 </Text>
@@ -186,37 +202,21 @@ export default function Home() {
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    {filteredStores.map((store) => {
-                        const status = getStatus(store);
-                        return (
-                            <InfoBox
-                                key={store.id}
-                                name={store.name}
-                                location={store.location}
-                                status={status}
-                                hours={store[getTodayKey()]}
-                                originalUrl={store.link}
-                            />
-                        );
-                    })}
+                    {sortedStores.map((store) => (
+                        <InfoBox
+                            key={store.id}
+                            name={store.name}
+                            location={store.location}
+                            status={getStatus(store)}
+                            hours={store[getTodayKey()]}
+                            originalUrl={store.link}
+                        />
+                    ))}
                 </ScrollView>
             )}
         </View>
     );
 }
-
-const getTodayKey = () => {
-    const dayMap = [
-        "sunday",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-    ] as const;
-    return dayMap[new Date().getDay()];
-};
 
 const styles = StyleSheet.create({
     container: {

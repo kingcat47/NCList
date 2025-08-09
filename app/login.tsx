@@ -103,7 +103,7 @@ export default function LoginScreen() {
               <Text style={styles.inputLabel}>전화번호</Text>
               <TextInput
                 style={styles.input}
-                placeholder="010-1234-5678"
+                placeholder="01012345678"
                 placeholderTextColor="#8A8A8A"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}

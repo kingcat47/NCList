@@ -21,28 +21,26 @@ interface InfoBoxProps {
     onLongPress?: () => void;
 }
 
-// "24시간" 텍스트 포함 여부 및 00:00-24:00 형식 체크
+
 const is24Hours = (hours?: string) => {
     if (!hours) return false;
     const trimmed = hours.replace(/\s/g, "");
     return (
         trimmed.includes("24시간") ||
-        trimmed === "00:00~24:00" ||
         trimmed === "00:00-24:00" ||
-        trimmed === "0:00~24:00" ||
         trimmed === "0:00-24:00"
     );
 };
 
-// 시간 파싱 (문자열 → 분)
-const parseHours = (hours: string): { open: number; close: number } | null => {
-    const separator = hours.includes("~") ? "~" : hours.includes("-") ? "-" : null;
-    if (!separator) return null;
 
-    const [openStr, closeStr] = hours.split(separator).map((s) => s.trim());
+const parseHours = (hours: string): { open: number; close: number } | null => {
+    if (!hours.includes("-")) return null; // 하이픈 없으면 실패
+    const [openStr, closeStr] = hours.split("-").map((s) => s.trim());
 
     const toMinutes = (time: string) => {
-        const [h, m] = time.split(":").map(Number);
+        const [hStr, mStr] = time.split(":");
+        const h = Number(hStr);
+        const m = Number(mStr);
         if (isNaN(h) || isNaN(m)) return -1;
         if (h === 24 && m === 0) return 1440;
         if (h > 24 || m >= 60) return -1;
@@ -56,12 +54,10 @@ const parseHours = (hours: string): { open: number; close: number } | null => {
     return { open, close };
 };
 
-// 영업 상태 계산
+
 const getStatusFromHours = (hours?: string): "영업중" | "곧마감" | "마감" => {
     if (!hours) return "마감";
-    if (is24Hours(hours)) {
-        return "영업중";
-    }
+    if (is24Hours(hours)) return "영업중";
 
     const timeRange = parseHours(hours);
     if (!timeRange) return "마감";
@@ -69,16 +65,24 @@ const getStatusFromHours = (hours?: string): "영업중" | "곧마감" | "마감
     const { open, close } = timeRange;
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const duration = close - open;
-    if (duration <= 60) return "영업중";
 
-    if (nowMinutes < open || nowMinutes >= close) {
-        return "마감";
+
+    const isOverMidnight = close < open;
+    let isOpen = false;
+    if (isOverMidnight) {
+        if (nowMinutes >= open || nowMinutes < close) isOpen = true;
+    } else {
+        if (nowMinutes >= open && nowMinutes < close) isOpen = true;
     }
 
-    const diff = close - nowMinutes;
-    if (diff <= 60) return "곧마감";
+    if (!isOpen) return "마감";
 
+
+    let diff = isOverMidnight
+        ? (nowMinutes >= open ? 1440 - nowMinutes + close : close - nowMinutes)
+        : close - nowMinutes;
+
+    if (diff <= 60) return "곧마감";
     return "영업중";
 };
 
@@ -143,12 +147,7 @@ export default function InfoBox({
     return (
         <>
             <Pressable onPress={handlePress} onLongPress={onLongPress}>
-                <View
-                    style={[
-                        styles.box,
-                        currentTab === "like" && styles.boxLike,
-                    ]}
-                >
+                <View style={[styles.box, currentTab === "like" && styles.boxLike]}>
                     <View style={styles.line1}>
                         <Text style={styles.text_name}>{truncateTitle(name)}</Text>
                         <View style={styles.box_map}>
@@ -171,7 +170,10 @@ export default function InfoBox({
             </Pressable>
 
             {showPopup && (
-                <DeletePopup onConfirm={handleDelete} onCancel={() => setShowPopup(false)} />
+                <DeletePopup
+                    onConfirm={handleDelete}
+                    onCancel={() => setShowPopup(false)}
+                />
             )}
         </>
     );
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 12,
         width: 340,
-        height:80,
+        height: 80,
     },
     line1: {
         flexDirection: "row",

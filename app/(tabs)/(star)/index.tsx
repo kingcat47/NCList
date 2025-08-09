@@ -71,7 +71,6 @@ export default function Like() {
     const [loading, setLoading] = useState(true);
     const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
 
-    // zustand 상태 구독
     const showFilter = useFilterStore((state) => state.showFilter);
     const setShowFilter = useFilterStore((state) => state.setShowFilter);
     const categoryFilter = useFilterStore((state) => state.categoryFilter);
@@ -91,9 +90,7 @@ export default function Like() {
 
             const todayKey = getTodayKey();
             const mappedStores: Store[] = response.data.data.map((s: any) => {
-
                 const todayHours = typeof s[todayKey] === "string" ? s[todayKey] : "";
-
                 return {
                     id: s.id,
                     name: s.name,
@@ -105,8 +102,8 @@ export default function Like() {
             });
 
             setStores(mappedStores);
-        } catch (error) {
-            //console.error("좋아요 가게를 불러오는 데 실패했습니다.", error);
+        } catch {
+            // console.error("좋아요 가게를 불러오는 데 실패했습니다.", error);
         } finally {
             setLoading(false);
         }
@@ -118,15 +115,7 @@ export default function Like() {
         }, [])
     );
 
-    const categories = [
-        "전체",
-        "음식",
-        "카페",
-        "헬스",
-        "의료",
-        "숙박",
-        "기타",
-    ];
+    const categories = ["전체", "음식", "카페", "헬스", "의료", "숙박", "기타"];
 
     const onSelectCategory = (category: string) => {
         setCategoryFilter(category);
@@ -138,9 +127,21 @@ export default function Like() {
             ? stores
             : stores.filter((store) => store.category === categoryFilter);
 
+
+    const statusPriority: Record<"영업중" | "곧마감" | "마감", number> = {
+        영업중: 1,
+        곧마감: 2,
+        마감: 3,
+    };
+
+    const sortedStores = [...filteredStores].sort(
+        (a, b) =>
+            statusPriority[getStatus(a.hours)] - statusPriority[getStatus(b.hours)]
+    );
+
     return (
         <View style={styles.container}>
-
+            {/* 필터 메뉴 */}
             <Modal
                 transparent
                 visible={showFilter}
@@ -177,17 +178,20 @@ export default function Like() {
                 </TouchableOpacity>
             </Modal>
 
+            {/* 메인 목록 */}
             {loading ? (
                 <ActivityIndicator size="large" color="#03C75A" />
-            ) : filteredStores.length === 0 ? (
-                <Text style={styles.emptyText}>선택한 카테고리에 해당하는 가게가 없습니다.</Text>
+            ) : sortedStores.length === 0 ? (
+                <Text style={styles.emptyText}>
+                    선택한 카테고리에 해당하는 가게가 없습니다.
+                </Text>
             ) : (
                 <ScrollView
                     style={styles.InfoBox_List}
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    {filteredStores.map((store) => (
+                    {sortedStores.map((store) => (
                         <InfoBox
                             key={store.id}
                             name={store.name}
@@ -206,20 +210,24 @@ export default function Like() {
                 </ScrollView>
             )}
 
+            {/* 삭제 팝업 */}
             {selectedStoreId && (
                 <DeletePopup
                     onConfirm={async () => {
                         try {
                             const token = await AsyncStorage.getItem("accessToken");
-                            await axios.delete(`${API_BASE_URL}/api/stores/${selectedStoreId}`, {
-                                headers: {
-                                    Authorization: `Bearer ${token}`,
-                                },
-                            });
-                            setStores((prev) => prev.filter((s) => s.id !== selectedStoreId));
+                            await axios.delete(
+                                `${API_BASE_URL}/api/stores/${selectedStoreId}`,
+                                {
+                                    headers: { Authorization: `Bearer ${token}` },
+                                }
+                            );
+                            setStores((prev) =>
+                                prev.filter((s) => s.id !== selectedStoreId)
+                            );
                             setSelectedStoreId(null);
                         } catch (e) {
-                            //console.error("삭제 실패", e);
+                            // console.error("삭제 실패", e);
                         }
                     }}
                     onCancel={() => setSelectedStoreId(null)}

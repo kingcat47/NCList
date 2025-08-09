@@ -1,50 +1,75 @@
-# Welcome to your Expo app 👋
+## Introduction
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**NCList (Navermap Choice List)** was inspired by the experience of using one of Korea’s most popular map apps, **Naver Map**.
 
-## Get started
+In Naver Map, users can “like” or bookmark places they want to remember or visit later — such as restaurants, cafes, hospitals, libraries, or even a friend's house.
 
-1. Install dependencies
+However, as your saved list grows, it becomes harder to quickly find the place you need. It’s also common to arrive at a bookmarked location only to discover that it’s closed.
 
-   ```bash
-   npm install
-   ```
+**NCList** solves this problem by providing users with a clean, easy-to-read list of their favorite places — all in one page — along with useful details such as:
 
-2. Start the app
+- Name of the place
+- Business hours
+- Current open/closed status
+- Location on the map
+- …and more
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## Alternative Approach: Crawling + GPT Processing
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+We initially considered using Naver’s login and official API to fetch saved places,  
+but due to privacy restrictions, Naver does not allow third-party access to a user’s “liked” or bookmarked locations.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Instead, we implemented **a custom crawler** that fetches public place information directly from shared Naver Map links.  
+The raw HTML/JSON data is then processed by **GPT** to extract only the necessary parts (e.g., business hours, name, address, category)  
+and store them in our database for display in NCList.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Tech Stack
+- **Design**: Figma
+- **Frontend**: React Native
+- **Backend**: NestJS
+- **Data Processing**: Custom crawler + GPT
+- **Translation**: Refined with AI to avoid stiff or awkward expressions
 
-```bash
-npm run reset-project
-```
+---
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## How to Use
 
-## Learn more
+1. **Login via phone number**
+   - On first use, go to the **Profile** screen and log in using your phone number.
 
-To learn more about developing your project with Expo, look at the following resources:
+2. **Get a Naver Map link**
+   - In the Naver Map app, find the place you want to save.
+   - Tap the **Share** button and copy the link.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+3. **Add the place to NCList**
+   - Go to the **Add** screen in NCList.
+   - Enter the name you want to save for the place and paste the Naver Map link.
+   - Wait about **2~4 seconds** for the loading screen to finish — the place will then be added.
 
-## Join the community
+4. **Home Screen**
+   - Shows each place’s name, location, and whether it’s currently open.
+   - Tapping a place opens it directly in Naver Map.
+   - Places are sorted **Open → Closing Soon → Closed** and can be filtered by category.
 
-Join our community of developers creating universal apps.
+5. **Like Screen**
+   - Shows place name and location.
+   - Tapping a place lets you choose whether to delete it from your list.
+   - Also sorted **Open → Closing Soon → Closed**, with category filtering available.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+6. **Profile Screen**
+   - Displays the number of places saved per category.
+   - Allows you to **log out**.
+
+---
+
+## Note
+This is my **first time writing a README**, and some parts were translated into Korean by AI.  
+There may be awkward expressions, so I kindly ask for your understanding if anything reads unnaturally.
+
+---
+
+Thank you for reading!
