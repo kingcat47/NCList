@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.orangejack0215.NCList"
     },
     "android": {
       "adaptiveIcon": {
@@ -44,6 +45,16 @@
       "eas": {
         "projectId": "3ac5fd43-baf8-4063-8464-5430e0807148"
       }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "sdkVersion": "53.0.0",
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/3ac5fd43-baf8-4063-8464-5430e0807148"
     }
   }
 }

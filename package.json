@@ -43,7 +43,8 @@
     "react-native-svg-transformer": "^1.5.1",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "zustand": "^5.0.7"
+    "zustand": "^5.0.7",
+    "expo-updates": "~0.28.17"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

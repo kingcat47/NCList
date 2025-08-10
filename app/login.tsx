@@ -20,16 +20,15 @@ export default function LoginScreen() {
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 전화번호 형식 검사 (010xxxxxxxx 또는 010-xxxx-xxxx 지원)
   const isValidPhoneNumber = (phone: string) => {
-    const withoutDash = phone.replace(/-/g, "");
-    return /^01[016789]\d{7,8}$/.test(withoutDash);
+    // + 붙을 수 있고 1~3자리 국가번호, 010 고정, 뒤에 7~8자리 숫자
+    return /^(\+?\d{1,3})010\d{7,8}$/.test(phone);
   };
 
   const handleSendCode = async () => {
     // 전화번호 형식 검사 및 안내
     if (!isValidPhoneNumber(phoneNumber)) {
-      Alert.alert('알림', '올바른 전화번호를 입력해주세요.\n예) 01012345678 또는 010-1234-5678');
+      Alert.alert('알림', '올바른 전화번호를 입력해주세요.\n예) 8201012345678');
       return;
     }
     setIsLoading(true);
@@ -100,14 +99,15 @@ export default function LoginScreen() {
             <View style={styles.formContainer}>
               <Text style={styles.title}>전화번호로 로그인</Text>
               <Text style={styles.subtitle}>
-                서비스 이용을 위해 전화번호를 입력해주세요
+                Please enter your phone number including the country code.
+                {"\n"}Example: 8201012345678
               </Text>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>전화번호</Text>
                 <TextInput
                     style={styles.input}
-                    placeholder="01012345678"
+                    placeholder="8201012345678"
                     placeholderTextColor="#8A8A8A"
                     value={phoneNumber}
                     onChangeText={setPhoneNumber}
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop:10,
+    marginTop:4,
   },
   loginButtonActive: {
     backgroundColor: '#146EFF',
